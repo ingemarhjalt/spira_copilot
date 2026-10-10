@@ -120,7 +120,9 @@ changing release IDs. These failures do not establish the specific cause.
 Place the flag before the subcommand. Diagnostic mode extracts a bounded JSON/XML
 error message or HTML title, redacts configured credentials and URLs, and never
 prints arbitrary response bodies or stack traces. Review the message for private
-information before sharing it. Default errors continue to omit server messages.
+information before sharing it. Default errors omit server messages, except HTTP 400, where the redacted message is
+included because it names the rejected parameter or filter. The error also names the
+method, endpoint and query parameter names (not values).
 
 The DH8 connection is intentionally not configured or contacted yet.
 Confirm the instance's installed v7 API, permissions and search filters using

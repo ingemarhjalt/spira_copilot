@@ -105,10 +105,12 @@ class SpiraClient:
         body = json.dumps(filters).encode("utf-8") if filters is not None else None
         headers = {
             "Accept": "application/json",
-            "Content-Type": "application/json",
             "username": self.settings.username,
             "api-key": self.settings.api_key,
         }
+        if body is not None:
+            # A Content-Type on body-less GETs is unnecessary and some WCF/proxy setups reject it.
+            headers["Content-Type"] = "application/json"
         for attempt in range(3):
             req = urllib.request.Request(url, data=body, headers=headers)
             remaining = self._next_request_at - time.monotonic()
@@ -128,11 +130,15 @@ class SpiraClient:
                 if exc.code not in (429, 500, 502, 503, 504) or attempt == 2:
                     code = exc.code
                     try:
-                        detail = self._error_detail(exc) if self.diagnostic_errors else ""
+                        # A 400 is a request-shape problem; its message is what identifies the cause.
+                        detail = (self._error_detail(exc)
+                                  if self.diagnostic_errors or code == 400 else "")
                     finally:
                         exc.close()
+                    query = f" (query: {', '.join(params)})" if params else ""
+                    method = "POST" if body is not None else "GET"
                     raise SpiraError(
-                        f"HTTP {code} retrieving {path}; report aborted.{detail}"
+                        f"HTTP {code} on {method} {path}{query}; report aborted.{detail}"
                     ) from None
                 retry = exc.headers.get("Retry-After", "")
                 wait = min(int(retry), 60) if retry.isdigit() else 2 ** attempt
