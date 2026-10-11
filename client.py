@@ -29,6 +29,7 @@ class Settings:
     ca_bundle: str | None = None
     page_size: int = 250
     verify_ssl: bool = True
+    api_version: str = "v7_0"
 
     @classmethod
     def load(cls, path: str):
@@ -42,6 +43,7 @@ class Settings:
             page_size = cfg.getint("api", "page_size", fallback=250)
             verify_ssl = cfg.getboolean("api", "verify_ssl", fallback=True)
             base_url = cfg.get("api", "base_url").strip().rstrip("/")
+            api_version = cfg.get("api", "api_version", fallback="v7_0").strip()
         except (ValueError, configparser.Error) as exc:
             raise SpiraError(
                 "Set a numeric DH8 project_id, valid page_size and boolean verify_ssl in [api]."
@@ -52,6 +54,8 @@ class Settings:
             raise SpiraError("base_url must be an HTTPS application URL without credentials or query.")
         if project_id <= 0 or not 1 <= page_size <= 500:
             raise SpiraError("project_id must be positive; page_size must be between 1 and 500.")
+        if not re.fullmatch(r"v\d+_\d+", api_version):
+            raise SpiraError("api_version must look like v7_0.")
         username = os.environ.get("SPIRA_USERNAME", "").strip()
         api_key = os.environ.get("SPIRA_API_KEY", "").strip()
         if not username or not api_key:
@@ -59,7 +63,8 @@ class Settings:
         ca = cfg.get("api", "ca_bundle", fallback="").strip()
         if ca:
             ca = str((Path(path).resolve().parent / ca).resolve())
-        return cls(base_url, project_id, username, api_key, ca or None, page_size, verify_ssl)
+        return cls(base_url, project_id, username, api_key, ca or None, page_size, verify_ssl,
+                   api_version)
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -90,7 +95,7 @@ class SpiraClient:
         self.opener = urllib.request.build_opener(
             urllib.request.HTTPSHandler(context=context), NoRedirect()
         )
-        self.service_base = f"{settings.base_url}/Services/v7_0/RestService.svc"
+        self.service_base = f"{settings.base_url}/Services/{settings.api_version}/RestService.svc"
         self.base = f"{self.service_base}/projects/{settings.project_id}"
 
     def request(self, path, params=None, filters=None, *, project_scoped=True):

@@ -35,6 +35,15 @@ ignored while verification is disabled. An HTTP 400 already means an HTTP
 response was received over TLS, so disabling verification is not expected to
 fix that request error.
 
+### HTTP 404 on `GET /projects`
+
+`/projects` is service-level and does not use `project_id`. A 404 means
+`<base_url>/Services/<api_version>/RestService.svc/projects` does not exist.
+`base_url` must be the application root you open in the browser (for example
+`https://host/SpiraTeam`), without `/Services/...` or a page name, and `api_version`
+must match the installed API (try `v7_0`, `v6_0`; open
+`<base_url>/Services/<version>/RestService.aspx` in a browser to confirm).
+
 ## Reports
 
 These are illustrative IDs: replace them with IDs from discovery.
