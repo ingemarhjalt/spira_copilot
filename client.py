@@ -110,12 +110,11 @@ class SpiraClient:
         body = json.dumps(filters).encode("utf-8") if filters is not None else None
         headers = {
             "Accept": "application/json",
+            # Spira's API help page: always send both Content-Type and Accept, also on GET.
+            "Content-Type": "application/json",
             "username": self.settings.username,
             "api-key": self.settings.api_key,
         }
-        if body is not None:
-            # A Content-Type on body-less GETs is unnecessary and some WCF/proxy setups reject it.
-            headers["Content-Type"] = "application/json"
         for attempt in range(3):
             req = urllib.request.Request(url, data=body, headers=headers)
             remaining = self._next_request_at - time.monotonic()

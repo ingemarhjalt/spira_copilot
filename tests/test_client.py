@@ -11,7 +11,7 @@ def make_client():
 
 
 class RequestTests(unittest.TestCase):
-    def test_get_has_no_content_type_and_400_reports_detail(self):
+    def test_get_sends_content_type_and_400_reports_detail(self):
         client = make_client()
         seen = {}
 
@@ -24,7 +24,7 @@ class RequestTests(unittest.TestCase):
         client.opener = mock.Mock(open=fake_open)
         with self.assertRaises(SpiraError) as ctx:
             client.request("/test-sets", {"sort_field": "Nope"})
-        self.assertNotIn("Content-type", seen["headers"])
+        self.assertEqual(seen["headers"]["Content-type"], "application/json")
         msg = str(ctx.exception)
         self.assertIn("/spira/Services/v7_0/RestService.svc/projects/1/test-sets (query: sort_field)", msg)
         self.assertIn("Invalid sort field", msg)
