@@ -26,7 +26,7 @@ class RequestTests(unittest.TestCase):
             client.request("/test-sets", {"sort_field": "Nope"})
         self.assertNotIn("Content-type", seen["headers"])
         msg = str(ctx.exception)
-        self.assertIn("RestService.svc/projects/1/test-sets (query: sort_field)", msg)
+        self.assertIn("/spira/Services/v7_0/RestService.svc/projects/1/test-sets (query: sort_field)", msg)
         self.assertIn("Invalid sort field", msg)
 
 

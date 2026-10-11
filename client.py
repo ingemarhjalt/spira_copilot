@@ -143,7 +143,7 @@ class SpiraClient:
                     query = f" (query: {', '.join(params)})" if params else ""
                     method = "POST" if body is not None else "GET"
                     raise SpiraError(
-                        f"HTTP {code} on {method} {url.split('?')[0]}{query}; report aborted.{detail}"
+                        f"HTTP {code} on {method} {urllib.parse.urlsplit(url).path}{query}; report aborted.{detail}"
                     ) from None
                 retry = exc.headers.get("Retry-After", "")
                 wait = min(int(retry), 60) if retry.isdigit() else 2 ** attempt
