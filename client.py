@@ -110,6 +110,8 @@ class SpiraClient:
         body = json.dumps(filters).encode("utf-8") if filters is not None else None
         headers = {
             "Accept": "application/json",
+            # Some gateways reject or 404 the default "Python-urllib" agent.
+            "User-Agent": "Mozilla/5.0 (compatible; spira-report/1.0)",
             # Spira's API help page: always send both Content-Type and Accept, also on GET.
             "Content-Type": "application/json",
             "username": self.settings.username,
