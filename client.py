@@ -137,13 +137,13 @@ class SpiraClient:
                     try:
                         # A 400 is a request-shape problem; its message is what identifies the cause.
                         detail = (self._error_detail(exc)
-                                  if self.diagnostic_errors or code == 400 else "")
+                                  if self.diagnostic_errors or code in (400, 404) else "")
                     finally:
                         exc.close()
                     query = f" (query: {', '.join(params)})" if params else ""
                     method = "POST" if body is not None else "GET"
                     raise SpiraError(
-                        f"HTTP {code} on {method} {path}{query}; report aborted.{detail}"
+                        f"HTTP {code} on {method} {url.split('?')[0]}{query}; report aborted.{detail}"
                     ) from None
                 retry = exc.headers.get("Retry-After", "")
                 wait = min(int(retry), 60) if retry.isdigit() else 2 ** attempt

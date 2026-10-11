@@ -26,7 +26,7 @@ class RequestTests(unittest.TestCase):
             client.request("/test-sets", {"sort_field": "Nope"})
         self.assertNotIn("Content-type", seen["headers"])
         msg = str(ctx.exception)
-        self.assertIn("HTTP 400 on GET /test-sets (query: sort_field)", msg)
+        self.assertIn("RestService.svc/projects/1/test-sets (query: sort_field)", msg)
         self.assertIn("Invalid sort field", msg)
 
 
