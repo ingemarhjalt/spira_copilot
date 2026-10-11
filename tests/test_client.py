@@ -30,5 +30,16 @@ class RequestTests(unittest.TestCase):
         self.assertIn("Invalid sort field", msg)
 
 
+    def test_use_proxy_false_ignores_environment_proxy(self):
+        def proxied(use_proxy):
+            s = Settings("https://x.example/spira", 1, "u", "{KEY}", use_proxy=use_proxy)
+            with mock.patch.dict("os.environ", {"HTTPS_PROXY": "http://proxy.example:8080"}):
+                client = SpiraClient(s)
+            return any(h.__class__.__name__ == "ProxyHandler" for h in client.opener.handlers)
+
+        self.assertTrue(proxied(True))
+        self.assertFalse(proxied(False))
+
+
 if __name__ == "__main__":
     unittest.main()

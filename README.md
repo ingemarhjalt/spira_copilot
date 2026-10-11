@@ -44,6 +44,10 @@ fix that request error.
 must match the installed API (try `v7_0`, `v6_0`; open
 `<base_url>/Services/<version>/RestService.aspx` in a browser to confirm).
 
+If PowerShell reaches the API but `cli.py` gets HTTP 404, Python may be using a proxy
+that PowerShell bypasses. Check `python -c "import urllib.request; print(urllib.request.getproxies())"`
+and try `use_proxy = false` under `[api]`.
+
 ## Reports
 
 These are illustrative IDs: replace them with IDs from discovery.

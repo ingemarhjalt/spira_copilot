@@ -30,6 +30,7 @@ class Settings:
     page_size: int = 250
     verify_ssl: bool = True
     api_version: str = "v7_0"
+    use_proxy: bool = True
 
     @classmethod
     def load(cls, path: str):
@@ -42,6 +43,7 @@ class Settings:
             project_id = cfg.getint("api", "project_id")
             page_size = cfg.getint("api", "page_size", fallback=250)
             verify_ssl = cfg.getboolean("api", "verify_ssl", fallback=True)
+            use_proxy = cfg.getboolean("api", "use_proxy", fallback=True)
             base_url = cfg.get("api", "base_url").strip().rstrip("/")
             api_version = cfg.get("api", "api_version", fallback="v7_0").strip()
         except (ValueError, configparser.Error) as exc:
@@ -64,7 +66,7 @@ class Settings:
         if ca:
             ca = str((Path(path).resolve().parent / ca).resolve())
         return cls(base_url, project_id, username, api_key, ca or None, page_size, verify_ssl,
-                   api_version)
+                   api_version, use_proxy)
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -92,9 +94,11 @@ class SpiraClient:
                 "Use only temporarily on a trusted network.",
                 file=sys.stderr,
             )
-        self.opener = urllib.request.build_opener(
-            urllib.request.HTTPSHandler(context=context), NoRedirect()
-        )
+        handlers = [urllib.request.HTTPSHandler(context=context), NoRedirect()]
+        if not settings.use_proxy:
+            # Connect directly; ignore HTTPS_PROXY/system proxy settings.
+            handlers.insert(0, urllib.request.ProxyHandler({}))
+        self.opener = urllib.request.build_opener(*handlers)
         self.service_base = f"{settings.base_url}/Services/{settings.api_version}/RestService.svc"
         self.base = f"{self.service_base}/projects/{settings.project_id}"
 
